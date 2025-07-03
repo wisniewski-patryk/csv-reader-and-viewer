@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CSV Reader</title>
+</head>
+<body>
+    <h2>Read CSV File</h2>
+    <input type="file" id="csvFile" accept=".csv" />
+    <pre id="output"></pre>
+
+    <script>
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const text = event.target.result;
+                
+                // Split the text into an array of lines
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                
+                // Parse CSV and display as table
+                const output = document.getElementById('output');
+                
+                // Parse all lines into a 2D array
+                const csvData = lines.map(line => line.split(',').map(element => element.trim()));
+                
+                // Calculate column widths for proper alignment
+                const maxColumns = Math.max(...csvData.map(row => row.length));
+                const columnWidths = Array(maxColumns).fill(0);
+                
+                csvData.forEach(row => {
+                    row.forEach((cell, index) => {
+                        columnWidths[index] = Math.max(columnWidths[index], cell.length);
+                    });
+                });
+                
+                // Create table header with separator
+                let result = `Total Lines: ${lines.length}\n\n`;
+                
+                // Build the table
+                csvData.forEach((row, rowIndex) => {
+                    const paddedCells = row.map((cell, cellIndex) => {
+                        return cell.padEnd(columnWidths[cellIndex]);
+                    });
+                    result += `| ${paddedCells.join(' | ')} |\n`;
+                    
+                    // Add separator line after header (first row)
+                    if (rowIndex === 0) {
+                        const separatorCells = columnWidths.map(width => '-'.repeat(width));
+                        result += `|-${separatorCells.join('-|-')}-|\n`;
+                    }
+                });
+                
+                output.textContent = result;
+            };
+            reader.readAsText(file);
+        });
+    </script>
+</body>
+</html>
